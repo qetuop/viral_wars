@@ -2,6 +2,15 @@ import pygame, sys
 from pygame.locals import *
 import math
 
+class Player():
+    def __init__(self, playerNum):
+        self.normal = pygame.image.load('player%d.png' % playerNum).convert_alpha()
+        self.selected = pygame.image.load('player%d_selected.png' % playerNum).convert_alpha()
+        self.image = self.normal
+        self.playerPos = [0,0] # selected position (if selected)
+        self.isSelected = False # is a piece selected
+
+
 #constants representing colours
 BLACK = (0,   0,   0  )
 WHITE = (255, 255, 255)
@@ -42,14 +51,19 @@ DISPLAYSURF = pygame.display.set_mode( (MAPWIDTH*TILESIZE, MAPHEIGHT*TILESIZE +1
 #add a font for our inventory
 INVFONT = pygame.font.Font('/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 18)
 
+
+
 #the player image
-PLAYER = pygame.image.load('player1.png').convert_alpha()
+player1 = Player(1)
+currentPlayer = player1
 
 #the position of the player [x,y]
-playerPos = [0,0]
+#playerPos = [0,0]
 
 pygame.display.set_caption('ATTAX')
-pygame.display.set_icon(PLAYER)
+pygame.display.set_icon(player1.image)
+
+#isPlayerSelected = False
 
 while True:
 
@@ -65,28 +79,35 @@ while True:
         # if a key is pressed
         elif event.type == KEYDOWN:
             # if the right arrow is pressed
-            if (event.key == K_RIGHT) and playerPos[0] < MAPWIDTH - 1:
+            if (event.key == K_RIGHT) and currentPlayer.playerPos[0] < MAPWIDTH - 1:
                 # change the player's x position
-                playerPos[0] += 1
+                currentPlayer.playerPos[0] += 1
             # if the right arrow is pressed
-            elif (event.key == K_LEFT) and playerPos[0] > 0:
+            elif (event.key == K_LEFT) and currentPlayer.playerPos[0] > 0:
                 # change the player's x position
-                playerPos[0] -= 1
+                currentPlayer.playerPos[0] -= 1
             # if the right arrow is pressed
-            elif (event.key == K_DOWN) and playerPos[1] < MAPHEIGHT - 1:
+            elif (event.key == K_DOWN) and currentPlayer.playerPos[1] < MAPHEIGHT - 1:
                 # change the player's x position
-                playerPos[1] += 1
+                currentPlayer.playerPos[1] += 1
             # if the right arrow is pressed
-            elif (event.key == K_UP) and playerPos[1] > 0:
+            elif (event.key == K_UP) and currentPlayer.playerPos[1] > 0:
                 # change the player's x position
-                playerPos[1] -= 1
+                currentPlayer.playerPos[1] -= 1
         elif event.type == MOUSEBUTTONUP:
             (x_pos,y_pos) = pygame.mouse.get_pos()
             x = math.floor(x_pos/TILESIZE)
             y = math.floor(y_pos/TILESIZE)
             print (x_pos, y_pos), (x,y)
-            playerPos[0] = x
-            playerPos[1] = y
+
+            # move piece
+            if ( currentPlayer.isSelected ):
+                currentPlayer.playerPos[0] = x
+                currentPlayer.playerPos[1] = y
+                currentPlayer.image = currentPlayer.normal
+            else:
+                currentPlayer.isSelected = True
+                currentPlayer.image = currentPlayer.selected
 
 
     #loop through each row
@@ -97,9 +118,9 @@ while True:
             DISPLAYSURF.blit(textures[tilemap[row][column]], (column*TILESIZE,row*TILESIZE))
 
     # display the player at the correct position
-    DISPLAYSURF.blit(PLAYER, (playerPos[0] * TILESIZE, playerPos[1] * TILESIZE))
+    DISPLAYSURF.blit(currentPlayer.image, (currentPlayer.playerPos[0] * TILESIZE, currentPlayer.playerPos[1] * TILESIZE))
 
-
+    '''
     # Score, starting 10 pixels in
     placePosition = 10
 
@@ -110,7 +131,7 @@ while True:
     textObj = INVFONT.render(str(1), True, WHITE, GREEN)
     DISPLAYSURF.blit(textObj, (placePosition, MAPHEIGHT * TILESIZE + 20))
     placePosition += 50
-
+    '''
 
     #update the display
     pygame.display.update()
