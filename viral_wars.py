@@ -7,8 +7,19 @@ class Player():
         self.normal = pygame.image.load('player%d.png' % playerNum).convert_alpha()
         self.selected = pygame.image.load('player%d_selected.png' % playerNum).convert_alpha()
         self.image = self.normal
-        self.playerPos = [0,0] # selected position (if selected)
+        self.selectedPos = (0,0) # selected position (if selected)
         self.isSelected = False # is a piece selected
+
+    def setSelected(self, value, coords):
+        if ( value == True ):
+            self.isSelected = True
+            self.image = self.selected
+        elif ( value == False ):
+            self.isSelected = False
+            self.image = self.normal
+
+        self.selectedPos = coords
+
 
 
 #constants representing colours
@@ -20,9 +31,14 @@ BLUE  = (0,   0,   255)
 
 #constants representing the different tiles
 STD  = 0
-GRASS = 1
-WATER = 2
-COAL  = 3
+#GRASS = 1
+#WATER = 2
+#COAL  = 3
+
+# temp constans
+EMPTY = 0
+PLAYER1 = 1
+PLAYER2 = 2
 
 #a dictionary linking resources to textures
 textures =   {
@@ -36,7 +52,14 @@ tilemap = [
             [STD, STD, STD  ]
           ]
 
-#useful game dimensions
+# can this be merged with the tile map?
+currBoard = [
+    [PLAYER1, EMPTY, EMPTY, ],
+    [EMPTY, EMPTY, EMPTY],
+    [EMPTY, EMPTY, EMPTY]
+]
+
+    #useful game dimensions
 TILESIZE  = 80
 MAPWIDTH  = 3
 MAPHEIGHT = 3
@@ -51,17 +74,18 @@ DISPLAYSURF = pygame.display.set_mode( (MAPWIDTH*TILESIZE, MAPHEIGHT*TILESIZE +1
 #add a font for our inventory
 INVFONT = pygame.font.Font('/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 18)
 
-
-
 #the player image
 player1 = Player(1)
 currentPlayer = player1
+
+temp_pieceSelected = False
 
 #the position of the player [x,y]
 #playerPos = [0,0]
 
 pygame.display.set_caption('ATTAX')
 pygame.display.set_icon(player1.image)
+
 
 #isPlayerSelected = False
 
@@ -96,19 +120,30 @@ while True:
                 currentPlayer.playerPos[1] -= 1
         elif event.type == MOUSEBUTTONUP:
             (x_pos,y_pos) = pygame.mouse.get_pos()
-            x = math.floor(x_pos/TILESIZE)
-            y = math.floor(y_pos/TILESIZE)
+            x = int(math.floor(x_pos/TILESIZE))
+            y = int(math.floor(y_pos/TILESIZE))
             print (x_pos, y_pos), (x,y)
 
-            # move piece
-            if ( currentPlayer.isSelected ):
-                currentPlayer.playerPos[0] = x
-                currentPlayer.playerPos[1] = y
-                currentPlayer.image = currentPlayer.normal
-            else:
-                currentPlayer.isSelected = True
-                currentPlayer.image = currentPlayer.selected
+            # contain player
+            if ( currBoard[x][y] == PLAYER1 ):
 
+                # is it the currenly selected piece
+                if ( currentPlayer.isSelected == True and currentPlayer.selectedPos == (x,y) ):
+                    currentPlayer.setSelected(False, (x,y))
+                else:
+                    currentPlayer.setSelected(True, (x, y))
+                    temp_pieceSelected = True
+
+            # if empty, move piece
+            elif (temp_pieceSelected == True and currBoard[x][y] == EMPTY ):
+                print "MOVE TO", x,y
+                # get the coords of the selected piece
+                a= currentPlayer.selectedPos[0]
+                b=currentPlayer.selectedPos[1]
+                currBoard[a][b] = EMPTY
+                currBoard[x][y] = PLAYER1
+                currentPlayer.setSelected(False, (x, y)) # unselect the original/new piece
+                temp_pieceSelected = False
 
     #loop through each row
     for row in range(MAPHEIGHT):
@@ -118,7 +153,7 @@ while True:
             DISPLAYSURF.blit(textures[tilemap[row][column]], (column*TILESIZE,row*TILESIZE))
 
     # display the player at the correct position
-    DISPLAYSURF.blit(currentPlayer.image, (currentPlayer.playerPos[0] * TILESIZE, currentPlayer.playerPos[1] * TILESIZE))
+    DISPLAYSURF.blit(currentPlayer.image, (currentPlayer.selectedPos[0] * TILESIZE, currentPlayer.selectedPos[1] * TILESIZE))
 
     '''
     # Score, starting 10 pixels in
