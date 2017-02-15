@@ -88,8 +88,8 @@ pygame.display.set_icon(player1.image)
 
 
 #isPlayerSelected = False
-
-while True:
+#QUIT = False
+while (True):
 
     # get all the user events
     for event in pygame.event.get():
@@ -122,7 +122,7 @@ while True:
             (x_pos,y_pos) = pygame.mouse.get_pos()
             x = int(math.floor(x_pos/TILESIZE))
             y = int(math.floor(y_pos/TILESIZE))
-            print (x_pos, y_pos), (x,y)
+            #print (x_pos, y_pos), (x,y)
 
             # contain player
             if ( currBoard[x][y] == PLAYER1 ):
@@ -130,9 +130,11 @@ while True:
                 # is it the currenly selected piece
                 if ( currentPlayer.isSelected == True and currentPlayer.selectedPos == (x,y) ):
                     currentPlayer.setSelected(False, (x,y))
+                    print "unsel:", (x, y)
                 else:
                     currentPlayer.setSelected(True, (x, y))
                     temp_pieceSelected = True
+                    print "sel:",(x,y)
 
             # if empty, move piece
             elif (temp_pieceSelected == True and currBoard[x][y] == EMPTY ):
@@ -140,20 +142,43 @@ while True:
                 # get the coords of the selected piece
                 a= currentPlayer.selectedPos[0]
                 b=currentPlayer.selectedPos[1]
-                currBoard[a][b] = EMPTY
                 currBoard[x][y] = PLAYER1
-                currentPlayer.setSelected(False, (x, y)) # unselect the original/new piece
+                currentPlayer.setSelected(False, (a, b)) # unselect the original/new piece
                 temp_pieceSelected = False
 
-    #loop through each row
-    for row in range(MAPHEIGHT):
-        #loop through each column in the row
-        for column in range(MAPWIDTH):
-            #draw the resource at that position in the tilemap, using the correct image
-            DISPLAYSURF.blit(textures[tilemap[row][column]], (column*TILESIZE,row*TILESIZE))
+                dist = math.sqrt( math.pow(x-a, 2) + math.pow(y-b, 2) )
+                print 'dist', dist
+                # if jump
+                if ( dist > math.sqrt(2) ):
+                    currBoard[a][b] = EMPTY
+                    print 'empth'
+                elif ( dist == 1.0 ):
+                    pass #currBoard[a][b] = EMPTY
 
-    # display the player at the correct position
-    DISPLAYSURF.blit(currentPlayer.image, (currentPlayer.selectedPos[0] * TILESIZE, currentPlayer.selectedPos[1] * TILESIZE))
+            print "CB:",currBoard
+
+
+
+    #loop through each row
+    for row in range(MAPHEIGHT):                # !!! = Y
+        #loop through each column in the row
+        for column in range(MAPWIDTH):          # !!! = X
+            #draw the resource at that position in the tilemap, using the correct image
+            DISPLAYSURF.blit(textures[tilemap[column][row]], (column*TILESIZE,row*TILESIZE))
+
+
+            # display the player
+            if ( currBoard[column][row] == PLAYER1 ):
+
+                if ( currentPlayer.selectedPos == (column,row) and temp_pieceSelected ):
+                    DISPLAYSURF.blit(currentPlayer.selected, (column * TILESIZE, row * TILESIZE))
+                else:
+                    DISPLAYSURF.blit(currentPlayer.normal, (column * TILESIZE, row * TILESIZE))
+
+
+            textObj = INVFONT.render('(%d,%d)'%(column,row), True, WHITE, GREEN)
+            DISPLAYSURF.blit(textObj, (column * TILESIZE + 20, row*TILESIZE+20))
+
 
     '''
     # Score, starting 10 pixels in
@@ -170,3 +195,5 @@ while True:
 
     #update the display
     pygame.display.update()
+
+    #QUIT = True
