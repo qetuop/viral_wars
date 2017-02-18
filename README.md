@@ -3,4 +3,4 @@ requires python 2.7
 
 
 1. unzip
-2. run with 'python viral_wars.py'
+2. run with './run.bash'
