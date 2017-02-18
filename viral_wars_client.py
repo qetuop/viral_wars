@@ -1,6 +1,8 @@
 import pygame, sys
 from pygame.locals import *
 import math
+import zmq
+import viral_pb2
 
 class Player():
     def __init__(self, playerNum):
@@ -65,6 +67,19 @@ MAPWIDTH  = 3
 MAPHEIGHT = 3
 
 
+################################
+##
+##      MAIN
+##
+################################
+# ZeroMQ Context
+context = zmq.Context()
+
+# Define the socket using the "Context"
+sock = context.socket(zmq.REQ)
+sock.connect("tcp://127.0.0.1:5678")
+
+
 #set up the display
 pygame.init()
 DISPLAYSURF = pygame.display.set_mode( (MAPWIDTH*TILESIZE, MAPHEIGHT*TILESIZE +100)  )
@@ -100,6 +115,7 @@ while (True):
             # and the game and close the window
             pygame.quit()
             sys.exit()
+
         # if a key is pressed
         elif event.type == KEYDOWN:
             # if the right arrow is pressed
@@ -118,6 +134,7 @@ while (True):
             elif (event.key == K_UP) and currentPlayer.playerPos[1] > 0:
                 # change the player's x position
                 currentPlayer.playerPos[1] -= 1
+
         elif event.type == MOUSEBUTTONUP:
             (x_pos,y_pos) = pygame.mouse.get_pos()
             x = int(math.floor(x_pos/TILESIZE))
@@ -156,14 +173,28 @@ while (True):
                 elif ( dist == 1.0 ):
                     pass #currBoard[a][b] = EMPTY
 
+            # Send a "message" using the socket
+            gameBoard = viral_pb2.GameBoard()
+            gameBoard.board = "foo"
+
+            sock.send(gameBoard.SerializeToString())
+            message =  sock.recv()
+
+            try:
+                gameBoard.ParseFromString(message)
+                board = gameBoard.board
+                print board
+            except:
+                print sys.exc_info()
+
             print "CB:",currBoard
 
 
 
     #loop through each row
-    for row in range(MAPHEIGHT):                # !!! = Y
+    for row in range(MAPHEIGHT):                # row/height == Y
         #loop through each column in the row
-        for column in range(MAPWIDTH):          # !!! = X
+        for column in range(MAPWIDTH):          # column/width == X
             #draw the resource at that position in the tilemap, using the correct image
             DISPLAYSURF.blit(textures[tilemap[column][row]], (column*TILESIZE,row*TILESIZE))
 

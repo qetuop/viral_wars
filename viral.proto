@@ -1,0 +1,6 @@
+package viral_wars;
+
+message GameBoard {
+    required string board = 1;
+
+}
