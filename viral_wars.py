@@ -130,6 +130,7 @@ while (True):
                 # is it the currenly selected piece
                 if ( currentPlayer.isSelected == True and currentPlayer.selectedPos == (x,y) ):
                     currentPlayer.setSelected(False, (x,y))
+                    temp_pieceSelected = False
                     print "unsel:", (x, y)
                 else:
                     currentPlayer.setSelected(True, (x, y))
@@ -151,7 +152,7 @@ while (True):
                 # if jump
                 if ( dist > math.sqrt(2) ):
                     currBoard[a][b] = EMPTY
-                    print 'empth'
+                    print 'empty'
                 elif ( dist == 1.0 ):
                     pass #currBoard[a][b] = EMPTY
 
