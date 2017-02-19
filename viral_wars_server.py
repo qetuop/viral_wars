@@ -17,12 +17,11 @@ while True:
 
     try:
         gameBoard.ParseFromString(message)
-        board = gameBoard.board
-        print board
+        print gameBoard.data
 
         #  Do some 'work'
         time.sleep(.01)
-        gameBoard.board = "bar"
+        gameBoard.data[0] = 1
 
         sock.send(gameBoard.SerializeToString())
     except:

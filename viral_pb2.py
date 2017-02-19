@@ -18,12 +18,42 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='viral.proto',
   package='viral_wars',
-  syntax='proto2',
-  serialized_pb=_b('\n\x0bviral.proto\x12\nviral_wars\"\x1a\n\tGameBoard\x12\r\n\x05\x62oard\x18\x01 \x02(\t')
+  syntax='proto3',
+  serialized_pb=_b('\n\x0bviral.proto\x12\nviral_wars\"\x8f\x01\n\tGameBoard\x12\x0c\n\x04rows\x18\x01 \x01(\x05\x12\x0c\n\x04\x63ols\x18\x02 \x01(\x05\x12,\n\x04\x64\x61ta\x18\x03 \x03(\x0e\x32\x1e.viral_wars.GameBoard.TileType\"8\n\x08TileType\x12\t\n\x05\x45MPTY\x10\x00\x12\x07\n\x03STD\x10\x01\x12\x0b\n\x07PLAYER1\x10\x02\x12\x0b\n\x07PLAYER2\x10\x03\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
+
+_GAMEBOARD_TILETYPE = _descriptor.EnumDescriptor(
+  name='TileType',
+  full_name='viral_wars.GameBoard.TileType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='EMPTY', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='STD', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PLAYER1', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PLAYER2', index=3, number=3,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=115,
+  serialized_end=171,
+)
+_sym_db.RegisterEnumDescriptor(_GAMEBOARD_TILETYPE)
 
 
 _GAMEBOARD = _descriptor.Descriptor(
@@ -34,9 +64,23 @@ _GAMEBOARD = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='board', full_name='viral_wars.GameBoard.board', index=0,
-      number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      name='rows', full_name='viral_wars.GameBoard.rows', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cols', full_name='viral_wars.GameBoard.cols', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='viral_wars.GameBoard.data', index=2,
+      number=3, type=14, cpp_type=8, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -45,17 +89,20 @@ _GAMEBOARD = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
+    _GAMEBOARD_TILETYPE,
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=27,
-  serialized_end=53,
+  serialized_start=28,
+  serialized_end=171,
 )
 
+_GAMEBOARD.fields_by_name['data'].enum_type = _GAMEBOARD_TILETYPE
+_GAMEBOARD_TILETYPE.containing_type = _GAMEBOARD
 DESCRIPTOR.message_types_by_name['GameBoard'] = _GAMEBOARD
 
 GameBoard = _reflection.GeneratedProtocolMessageType('GameBoard', (_message.Message,), dict(

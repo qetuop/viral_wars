@@ -32,15 +32,16 @@ GREEN = (0,   255, 0  )
 BLUE  = (0,   0,   255)
 
 #constants representing the different tiles
-STD  = 0
+#STD  = 0
 #GRASS = 1
 #WATER = 2
 #COAL  = 3
 
 # temp constans
-EMPTY = 0
-PLAYER1 = 1
-PLAYER2 = 2
+EMPTY   = 0
+STD     = 1
+PLAYER1 = 2
+PLAYER2 = 3
 
 #a dictionary linking resources to textures
 textures =   {
@@ -66,6 +67,9 @@ TILESIZE  = 80
 MAPWIDTH  = 3
 MAPHEIGHT = 3
 
+def readBoard(gameBoard):
+    for row in range(gameBoard.rows):
+        print row
 
 ################################
 ##
@@ -175,15 +179,18 @@ while (True):
 
             # Send a "message" using the socket
             gameBoard = viral_pb2.GameBoard()
-            gameBoard.board = "foo"
+            gameBoard.rows = 3
+            gameBoard.cols = 3
+            #gameBoard.datadata[i*cols+j] = 0
+            print viral_pb2.GameBoard
+            gameBoard.data.append(0)
 
             sock.send(gameBoard.SerializeToString())
             message =  sock.recv()
 
             try:
                 gameBoard.ParseFromString(message)
-                board = gameBoard.board
-                print board
+                print gameBoard.data
             except:
                 print sys.exc_info()
 

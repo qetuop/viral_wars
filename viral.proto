@@ -1,6 +1,18 @@
+syntax = "proto3";
 package viral_wars;
 
 message GameBoard {
-    required string board = 1;
+    enum TileType {
+        EMPTY   = 0;
+        STD     = 1;
+        PLAYER1 = 2;
+        PLAYER2 = 3;
+    }
+
+    int32 rows = 1;
+    int32 cols = 2;
+    repeated TileType data = 3; // data[i*cols+j] (row-major) or data[i+rows*j] (column-major)
+
+
 
 }
