@@ -67,9 +67,15 @@ TILESIZE  = 80
 MAPWIDTH  = 3
 MAPHEIGHT = 3
 
-def readBoard(gameBoard):
+def writeBoard(gameBoard, currBoard):
+    for row in range(MAPHEIGHT):
+        for col in range(MAPWIDTH):
+            gameBoard.data.append(currBoard[col][row])
+
+def readBoard(gameBoard, currBoard):
     for row in range(gameBoard.rows):
-        print row
+        for col in range(gameBoard.cols):
+            currBoard[col][row] = gameBoard.data[row*gameBoard.cols+col]
 
 ################################
 ##
@@ -182,19 +188,23 @@ while (True):
             gameBoard.rows = 3
             gameBoard.cols = 3
             #gameBoard.datadata[i*cols+j] = 0
-            print viral_pb2.GameBoard
-            gameBoard.data.append(0)
+            #print viral_pb2.GameBoard
+            #gameBoard.data.append(0)
+            print "CB 1: ", currBoard
+            writeBoard(gameBoard, currBoard)
 
             sock.send(gameBoard.SerializeToString())
             message =  sock.recv()
 
             try:
                 gameBoard.ParseFromString(message)
-                print gameBoard.data
+                print "GB:", gameBoard.data
+                readBoard(gameBoard, currBoard)
+
             except:
                 print sys.exc_info()
 
-            print "CB:",currBoard
+            print "CB 2:",currBoard
 
 
 

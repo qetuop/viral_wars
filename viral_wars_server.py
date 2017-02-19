@@ -21,7 +21,7 @@ while True:
 
         #  Do some 'work'
         time.sleep(.01)
-        gameBoard.data[0] = 1
+        #gameBoard.data[0] = 1
 
         sock.send(gameBoard.SerializeToString())
     except:
