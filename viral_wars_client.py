@@ -4,6 +4,22 @@ import math
 import zmq
 import viral_pb2
 
+class Game():
+    def __init__(self):
+        self.numPlayers = 1
+        self.currPlayer = PLAYER1
+
+class Board():
+    def __init__(self, rows, cols):
+        self.currBoard = []   # row major
+        self.rows = rows
+        self.cols = cols
+
+        for row in range(self.rows):
+            self.currBoard.append([])
+            for col in range(self.cols):
+                self.currBoard[row].append(STD)
+
 class Player():
     def __init__(self, playerNum):
         self.normal = pygame.image.load('player%d.png' % playerNum).convert_alpha()
@@ -31,21 +47,17 @@ BROWN = (153, 76,  0  )
 GREEN = (0,   255, 0  )
 BLUE  = (0,   0,   255)
 
-#constants representing the different tiles
-#STD  = 0
-#GRASS = 1
-#WATER = 2
-#COAL  = 3
-
-# temp constans
-EMPTY   = 0
-STD     = 1
+# temp constants
+EMPTY   = 0 # no tile
+STD     = 1 # standard tile
 PLAYER1 = 2
 PLAYER2 = 3
+BLOCK   = 4 # blocked tile
 
 #a dictionary linking resources to textures
 textures =   {
-                STD  : pygame.image.load('1x1.png')
+                STD    : pygame.image.load('std.png'),
+                BLOCK  : pygame.image.load('block.png')
             }
 
 #a list representing our tilemap
@@ -62,7 +74,7 @@ currBoard = [
     [EMPTY, EMPTY, EMPTY]
 ]
 
-    #useful game dimensions
+#useful game dimensions
 TILESIZE  = 80
 MAPWIDTH  = 3
 MAPHEIGHT = 3
@@ -103,6 +115,8 @@ INVFONT = pygame.font.Font('/usr/share/fonts/truetype/freefont/FreeSansBold.ttf'
 player1 = Player(1)
 currentPlayer = player1
 
+board = Board(3,3)
+
 temp_pieceSelected = False
 
 #the position of the player [x,y]
@@ -126,26 +140,10 @@ while (True):
             pygame.quit()
             sys.exit()
 
-        # if a key is pressed
-        elif event.type == KEYDOWN:
-            # if the right arrow is pressed
-            if (event.key == K_RIGHT) and currentPlayer.playerPos[0] < MAPWIDTH - 1:
-                # change the player's x position
-                currentPlayer.playerPos[0] += 1
-            # if the right arrow is pressed
-            elif (event.key == K_LEFT) and currentPlayer.playerPos[0] > 0:
-                # change the player's x position
-                currentPlayer.playerPos[0] -= 1
-            # if the right arrow is pressed
-            elif (event.key == K_DOWN) and currentPlayer.playerPos[1] < MAPHEIGHT - 1:
-                # change the player's x position
-                currentPlayer.playerPos[1] += 1
-            # if the right arrow is pressed
-            elif (event.key == K_UP) and currentPlayer.playerPos[1] > 0:
-                # change the player's x position
-                currentPlayer.playerPos[1] -= 1
-
+        # if mouse
         elif event.type == MOUSEBUTTONUP:
+
+            # TODO: make function
             (x_pos,y_pos) = pygame.mouse.get_pos()
             x = int(math.floor(x_pos/TILESIZE))
             y = int(math.floor(y_pos/TILESIZE))
@@ -183,6 +181,10 @@ while (True):
                 elif ( dist == 1.0 ):
                     pass #currBoard[a][b] = EMPTY
 
+
+            print "CB Req:  ", currBoard
+
+            '''  TODO: Bring back in talking to server later
             # Send a "message" using the socket
             gameBoard = viral_pb2.GameBoard()
             gameBoard.rows = 3
@@ -190,7 +192,7 @@ while (True):
             #gameBoard.datadata[i*cols+j] = 0
             #print viral_pb2.GameBoard
             #gameBoard.data.append(0)
-            print "CB 1: ", currBoard
+
             writeBoard(gameBoard, currBoard)
 
             sock.send(gameBoard.SerializeToString())
@@ -203,8 +205,9 @@ while (True):
 
             except:
                 print sys.exc_info()
+            '''
 
-            print "CB 2:",currBoard
+            print "CB Resp: ",currBoard
 
 
 
@@ -224,9 +227,10 @@ while (True):
                 else:
                     DISPLAYSURF.blit(currentPlayer.normal, (column * TILESIZE, row * TILESIZE))
 
-
-            textObj = INVFONT.render('(%d,%d)'%(column,row), True, WHITE, GREEN)
-            DISPLAYSURF.blit(textObj, (column * TILESIZE + 20, row*TILESIZE+20))
+            # print cell coords
+            if (1):
+                textObj = INVFONT.render('(%d,%d)'%(column,row), True, WHITE, GREEN)
+                DISPLAYSURF.blit(textObj, (column * TILESIZE + 20, row*TILESIZE+20))
 
 
     '''
