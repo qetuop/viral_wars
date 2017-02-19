@@ -8,6 +8,7 @@ class Game():
     def __init__(self):
         self.numPlayers = 1
         self.currPlayer = PLAYER1
+        self.playerSelected = False
 
 class Board():
     def __init__(self, rows, cols):
@@ -19,6 +20,18 @@ class Board():
             self.currBoard.append([])
             for col in range(self.cols):
                 self.currBoard[row].append(STD)
+
+    def writeBoardToBuf(self, gameBoard):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                gameBoard.data.append(self.board[row][col])
+
+    def readBoardFromBuf(self, gameBoard):
+        for row in range(gameBoard.rows):
+            self.currBoard.append([])
+            for col in range(gameBoard.cols):
+                self.currBoard[row].append(gameBoard.data[row * gameBoard.cols + col])
+                #self.board[row][col] = gameBoard.data[row * gameBoard.cols + col]
 
 class Player():
     def __init__(self, playerNum):
@@ -76,18 +89,10 @@ currBoard = [
 '''
 #useful game dimensions
 TILESIZE  = 80
-MAPWIDTH  = 3
-MAPHEIGHT = 3
+#MAPWIDTH  = 3
+#MAPHEIGHT = 3
 
-def writeBoard(gameBoard, currBoard):
-    for row in range(MAPHEIGHT):
-        for col in range(MAPWIDTH):
-            gameBoard.data.append(currBoard[col][row])
 
-def readBoard(gameBoard, currBoard):
-    for row in range(gameBoard.rows):
-        for col in range(gameBoard.cols):
-            currBoard[col][row] = gameBoard.data[row*gameBoard.cols+col]
 
 ################################
 ##
@@ -102,24 +107,34 @@ sock = context.socket(zmq.REQ)
 sock.connect("tcp://127.0.0.1:5678")
 
 
-#set up the display
-pygame.init()
-DISPLAYSURF = pygame.display.set_mode( (MAPWIDTH*TILESIZE, MAPHEIGHT*TILESIZE +100)  )
-DISPLAYSURF.fill(GREEN)
 
+# The Game
+game = Game()
 
-#add a font for our inventory
-INVFONT = pygame.font.Font('/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 18)
-
-#the player image
-player1 = Player(1)
-currentPlayer = player1
-
+# The Board
 board = Board(3,3)
 board.currBoard[0][0] = PLAYER1
 board.currBoard[1][2] = BLOCK
 
-temp_pieceSelected = False
+
+# set up the display
+pygame.init()
+
+# Main display
+DISPLAYSURF = pygame.display.set_mode( (board.rows*TILESIZE, board.cols*TILESIZE +100)  )
+DISPLAYSURF.fill(GREEN)
+
+# add a font for our inventory
+INVFONT = pygame.font.Font('/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 18)
+
+# The Players
+player1 = Player(1)
+currentPlayer = player1
+
+
+
+
+# temp_pieceSelected = False
 
 #the position of the player [x,y]
 #playerPos = [0,0]
@@ -151,37 +166,38 @@ while (True):
             row = int(math.floor(y_pos/TILESIZE))   # row is along the y plane
             #print (x_pos, y_pos), (x,y)
 
-            # contain player
+            # contain player (or opponent?)
             if ( board.currBoard[row][col] == PLAYER1 ):
 
                 # is it the currently selected piece
                 if ( currentPlayer.isSelected == True and currentPlayer.selectedPos == (row, col) ):
                     currentPlayer.setSelected(False, (row,col))
-                    temp_pieceSelected = False
+                    game.playerSelected = False
                     print "unsel:", (row,col)
                 else:
                     currentPlayer.setSelected(True, (row,col))
-                    temp_pieceSelected = True
+                    game.playerSelected = True
                     print "sel:",(row,col)
 
             # if empty, move piece
-            elif (temp_pieceSelected == True and board.currBoard[row][col] == EMPTY ):
+            elif (game.playerSelected == True and board.currBoard[row][col] == STD ):
                 print "MOVE TO", row,col
                 # get the coords of the selected piece
-                a= currentPlayer.selectedPos[0]
-                b=currentPlayer.selectedPos[1]
-                board.currBoard[row][col] = PLAYER1
+                row_orig = currentPlayer.selectedPos[0]
+                col_orig = currentPlayer.selectedPos[1]
+                board.currBoard[row][col] = game.currPlayer
                 currentPlayer.setSelected(False, (row, col)) # unselect the original/new piece
-                temp_pieceSelected = False
+                game.playerSelected = False
 
-                dist = math.sqrt( math.pow(row-a, 2) + math.pow(col-b, 2) )
+                dist = math.sqrt( math.pow(row-row_orig, 2) + math.pow(col-col_orig, 2) )
                 print 'dist', dist
                 # if jump
                 if ( dist > math.sqrt(2) ):
-                    board.currBoard[row][col] = EMPTY
+                    board.currBoard[row][col] = game.currPlayer
+                    board.currBoard[row_orig][col_orig] = STD
                     print 'empty'
                 elif ( dist == 1.0 ):
-                    pass #currBoard[a][b] = EMPTY
+                    pass #currBoard[a][b] = STD
 
 
             print "CB Req:  ", board.currBoard
@@ -214,9 +230,9 @@ while (True):
 
 
     #loop through each row
-    for row in range(MAPHEIGHT):                # row/height == Y
+    for row in range(board.rows):                # row/height == Y
         #loop through each column in the row
-        for col in range(MAPWIDTH):             # column/width == X
+        for col in range(board.cols):             # column/width == X
 
             # !! col = X coord, row = Y coord --> draw at (col,row) !!
 
@@ -231,7 +247,7 @@ while (True):
             # display the player
             if ( board.currBoard[row][col] == PLAYER1 ):
 
-                if ( currentPlayer.selectedPos == (row,col) and temp_pieceSelected ):
+                if ( currentPlayer.selectedPos == (row,col) and game.playerSelected == True ):
                     DISPLAYSURF.blit(currentPlayer.selected, (col * TILESIZE, row * TILESIZE))
                 else:
                     DISPLAYSURF.blit(currentPlayer.normal, (col * TILESIZE, row * TILESIZE))
