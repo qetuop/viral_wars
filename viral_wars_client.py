@@ -59,7 +59,7 @@ textures =   {
                 STD    : pygame.image.load('std.png'),
                 BLOCK  : pygame.image.load('block.png')
             }
-
+'''
 #a list representing our tilemap
 tilemap = [
             [STD, STD, STD, ],
@@ -73,7 +73,7 @@ currBoard = [
     [EMPTY, EMPTY, EMPTY],
     [EMPTY, EMPTY, EMPTY]
 ]
-
+'''
 #useful game dimensions
 TILESIZE  = 80
 MAPWIDTH  = 3
@@ -105,7 +105,7 @@ sock.connect("tcp://127.0.0.1:5678")
 #set up the display
 pygame.init()
 DISPLAYSURF = pygame.display.set_mode( (MAPWIDTH*TILESIZE, MAPHEIGHT*TILESIZE +100)  )
-
+DISPLAYSURF.fill(GREEN)
 
 
 #add a font for our inventory
@@ -116,6 +116,8 @@ player1 = Player(1)
 currentPlayer = player1
 
 board = Board(3,3)
+board.currBoard[0][0] = PLAYER1
+board.currBoard[1][2] = BLOCK
 
 temp_pieceSelected = False
 
@@ -145,44 +147,44 @@ while (True):
 
             # TODO: make function
             (x_pos,y_pos) = pygame.mouse.get_pos()
-            x = int(math.floor(x_pos/TILESIZE))
-            y = int(math.floor(y_pos/TILESIZE))
+            col = int(math.floor(x_pos/TILESIZE))   # column is along the X plane
+            row = int(math.floor(y_pos/TILESIZE))   # row is along the y plane
             #print (x_pos, y_pos), (x,y)
 
             # contain player
-            if ( currBoard[x][y] == PLAYER1 ):
+            if ( board.currBoard[row][col] == PLAYER1 ):
 
-                # is it the currenly selected piece
-                if ( currentPlayer.isSelected == True and currentPlayer.selectedPos == (x,y) ):
-                    currentPlayer.setSelected(False, (x,y))
+                # is it the currently selected piece
+                if ( currentPlayer.isSelected == True and currentPlayer.selectedPos == (row, col) ):
+                    currentPlayer.setSelected(False, (row,col))
                     temp_pieceSelected = False
-                    print "unsel:", (x, y)
+                    print "unsel:", (row,col)
                 else:
-                    currentPlayer.setSelected(True, (x, y))
+                    currentPlayer.setSelected(True, (row,col))
                     temp_pieceSelected = True
-                    print "sel:",(x,y)
+                    print "sel:",(row,col)
 
             # if empty, move piece
-            elif (temp_pieceSelected == True and currBoard[x][y] == EMPTY ):
-                print "MOVE TO", x,y
+            elif (temp_pieceSelected == True and board.currBoard[row][col] == EMPTY ):
+                print "MOVE TO", row,col
                 # get the coords of the selected piece
                 a= currentPlayer.selectedPos[0]
                 b=currentPlayer.selectedPos[1]
-                currBoard[x][y] = PLAYER1
-                currentPlayer.setSelected(False, (a, b)) # unselect the original/new piece
+                board.currBoard[row][col] = PLAYER1
+                currentPlayer.setSelected(False, (row, col)) # unselect the original/new piece
                 temp_pieceSelected = False
 
-                dist = math.sqrt( math.pow(x-a, 2) + math.pow(y-b, 2) )
+                dist = math.sqrt( math.pow(row-a, 2) + math.pow(col-b, 2) )
                 print 'dist', dist
                 # if jump
                 if ( dist > math.sqrt(2) ):
-                    currBoard[a][b] = EMPTY
+                    board.currBoard[row][col] = EMPTY
                     print 'empty'
                 elif ( dist == 1.0 ):
                     pass #currBoard[a][b] = EMPTY
 
 
-            print "CB Req:  ", currBoard
+            print "CB Req:  ", board.currBoard
 
             '''  TODO: Bring back in talking to server later
             # Send a "message" using the socket
@@ -207,30 +209,37 @@ while (True):
                 print sys.exc_info()
             '''
 
-            print "CB Resp: ",currBoard
+            print "CB Resp: ",board.currBoard
 
 
 
     #loop through each row
     for row in range(MAPHEIGHT):                # row/height == Y
         #loop through each column in the row
-        for column in range(MAPWIDTH):          # column/width == X
-            #draw the resource at that position in the tilemap, using the correct image
-            DISPLAYSURF.blit(textures[tilemap[column][row]], (column*TILESIZE,row*TILESIZE))
+        for col in range(MAPWIDTH):             # column/width == X
 
+            # !! col = X coord, row = Y coord --> draw at (col,row) !!
+
+            if ( board.currBoard[row][col] == EMPTY ):
+                pass
+            else:
+                DISPLAYSURF.blit(textures[STD], (col * TILESIZE, row * TILESIZE))
+
+            if ( board.currBoard[row][col] == BLOCK ):
+                DISPLAYSURF.blit(textures[BLOCK], (col * TILESIZE, row * TILESIZE))
 
             # display the player
-            if ( currBoard[column][row] == PLAYER1 ):
+            if ( board.currBoard[row][col] == PLAYER1 ):
 
-                if ( currentPlayer.selectedPos == (column,row) and temp_pieceSelected ):
-                    DISPLAYSURF.blit(currentPlayer.selected, (column * TILESIZE, row * TILESIZE))
+                if ( currentPlayer.selectedPos == (row,col) and temp_pieceSelected ):
+                    DISPLAYSURF.blit(currentPlayer.selected, (col * TILESIZE, row * TILESIZE))
                 else:
-                    DISPLAYSURF.blit(currentPlayer.normal, (column * TILESIZE, row * TILESIZE))
+                    DISPLAYSURF.blit(currentPlayer.normal, (col * TILESIZE, row * TILESIZE))
 
             # print cell coords
             if (1):
-                textObj = INVFONT.render('(%d,%d)'%(column,row), True, WHITE, GREEN)
-                DISPLAYSURF.blit(textObj, (column * TILESIZE + 20, row*TILESIZE+20))
+                textObj = INVFONT.render('(%d,%d)'%(row,col), True, WHITE, GREEN)
+                DISPLAYSURF.blit(textObj, (col * TILESIZE + 20, row*TILESIZE+20))
 
 
     '''
