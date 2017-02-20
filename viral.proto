@@ -7,6 +7,7 @@ message GameBoard {
         STD     = 1;
         PLAYER1 = 2;
         PLAYER2 = 3;
+        BLOCK   = 4;
     }
 
     int32 rows = 1;
@@ -14,4 +15,9 @@ message GameBoard {
     repeated TileType data = 3; // data[i*cols+j] (row-major)
                                 // data[i+rows*j] (column-major)
                                 // repeated *field* NOT repeated *message*
+}
+
+message Game {
+    int32 numPlayers;
+    int32 currPlayer;
 }
