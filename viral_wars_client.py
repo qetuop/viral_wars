@@ -45,15 +45,22 @@ class Game():
 
 class Board():
     def __init__(self, rows, cols):
-        self.currBoard = []   # row major
+        #self.currBoard = []   # row major
+        self.tiles = []
+        self.players = []
         self.rows = rows
         self.cols = cols
 
         for row in range(self.rows):
-            self.currBoard.append([])
+            #self.currBoard.append([])
+            self.tiles.append([])
+            self.players.append([])
             for col in range(self.cols):
-                self.currBoard[row].append(TILE_STD)
+                #self.currBoard[row].append(TILE_STD)
+                self.tiles[row].append(TILE_STD)
+                self.players[row].append(PLAYER_NONE)
 
+    '''
     def writeBoardToBuf(self, gameBoard):
         for row in range(self.rows):
             for col in range(self.cols):
@@ -65,7 +72,7 @@ class Board():
             for col in range(gameBoard.cols):
                 self.currBoard[row].append(gameBoard.data[row * gameBoard.cols + col])
                 #self.board[row][col] = gameBoard.data[row * gameBoard.cols + col]
-
+    '''
 class Player():
     def __init__(self, playerNum):
         self.normal = pygame.image.load('player%d.png' % playerNum).convert_alpha()
@@ -106,16 +113,6 @@ TILE_PLAYER1 = 2
 TILE_PLAYER2 = 3
 TILE_BLOCK   = 4 # TILE_BLOCKed tile
 
-# TODO: i don't know how to do this better for now FIX THIS!!!
-tilePlayerMap = {TILE_PLAYER1 : PLAYER_1,
-                 TILE_PLAYER2 : PLAYER_2,
-                 TILE_EMPTY: PLAYER_NONE,
-                 TILE_STD: PLAYER_NONE,
-                 TILE_BLOCK: PLAYER_NONE,
-                 }
-playerTileMap = {PLAYER_1 : TILE_PLAYER1,
-                 PLAYER_2 : TILE_PLAYER2}
-
 #a dictionary linking resources to textures
 textures =   {
                 TILE_STD    : pygame.image.load('std.png'),
@@ -145,9 +142,9 @@ sock.connect("tcp://127.0.0.1:5678")
 rowCnt = 5
 colCnt = 5
 board = Board(rowCnt,colCnt)
-board.currBoard[0][0] = TILE_PLAYER1
-board.currBoard[1][2] = TILE_BLOCK
-board.currBoard[rowCnt-1][colCnt-1] = TILE_PLAYER2
+board.tiles[1][2] = TILE_BLOCK
+board.players[0][0] = PLAYER_1
+board.players[rowCnt-1][colCnt-1] = PLAYER_2
 
 # set up the display
 pygame.init()
@@ -171,7 +168,9 @@ pygame.display.set_caption('ATTAX')
 #pygame.display.set_icon(TILE_PLAYER1.image)
 
 
-print board.currBoard
+#print board.currBoard
+print 'Players', board.players
+print 'Tiles', board.tiles
 
 #isPlayerSelected = False
 #QUIT = False
@@ -180,8 +179,6 @@ while (True):
     # get all the user events
     for event in pygame.event.get():
         #print(event)
-
-
 
         # if the user wants to quit
         if event.type == QUIT:
@@ -204,7 +201,7 @@ while (True):
             # if empty/block ?
 
             # contain player (or opponent?)
-            if ( tilePlayerMap[board.currBoard[row][col]] == game.currPlayer ):
+            if ( board.players[row][col] == game.currPlayer ):
 
                 # is it the currently selected piece
                 if ( currentPlayer.isSelected == True and currentPlayer.selectedPos == (row, col) ):
@@ -217,20 +214,20 @@ while (True):
                     print "sel:",(row,col)
 
             # if TILE_EMPTY, move piece - a piece will only be selected if the above if first triggered
-            elif (game.playerSelected == True and board.currBoard[row][col] == TILE_STD ):
+            elif (game.playerSelected == True and board.tiles[row][col] == TILE_STD):
                 print "MOVE TO", row,col
                 # get the coords of the selected piece
                 row_orig = currentPlayer.selectedPos[0]
                 col_orig = currentPlayer.selectedPos[1]
-                board.currBoard[row][col] = playerTileMap[game.currPlayer]
+                board.players[row][col] = game.currPlayer
                 currentPlayer.setSelected(False, (row, col)) # unselect the original/new piece
 
                 dist = math.sqrt( math.pow(row-row_orig, 2) + math.pow(col-col_orig, 2) )
                 print 'dist', dist
                 # if jump
                 if ( dist > math.sqrt(2) ):
-                    board.currBoard[row][col] = playerTileMap[game.currPlayer]
-                    board.currBoard[row_orig][col_orig] = TILE_STD
+                    board.tiles[row][col] = game.currPlayer
+                    board.tiles[row_orig][col_orig] = TILE_STD
                     print 'TILE_EMPTY'
                 elif ( dist == 1.0 ):
                     pass #currBoard[a][b] = TILE_STD
@@ -238,7 +235,7 @@ while (True):
                 game.playerSelected = False
                 game.nextPlayerTurn()
 
-            print "CB Req:  ", board.currBoard
+            print "CB Req:  ", board.players
 
             '''  TODO: Bring back in talking to server later
             # Send a "message" using the socket
@@ -263,11 +260,11 @@ while (True):
                 print sys.exc_info()
             '''
 
-            print "CB Resp: ",board.currBoard
+            print "CB Resp: ",board.players
 
 
 
-    #loop through each row
+    # loop through each row
     for row in range(board.rows):                # row/height == Y
         #loop through each column in the row
         for col in range(board.cols):             # column/width == X
@@ -277,30 +274,31 @@ while (True):
             # move out of loop
             currentPlayer = game.getCurrPlayer()
 
-            if ( board.currBoard[row][col] == TILE_EMPTY ):
+            # Draw the Tile
+            if (board.tiles[row][col] == TILE_EMPTY):
                 pass
             else:
                 DISPLAYSURF.blit(textures[TILE_STD], (col * TILESIZE, row * TILESIZE))
 
-            if ( board.currBoard[row][col] == TILE_BLOCK ):
+            #if ( board.currBoard[row][col] == TILE_BLOCK ):
+            if (board.tiles[row][col] == TILE_BLOCK):
                 DISPLAYSURF.blit(textures[TILE_BLOCK], (col * TILESIZE, row * TILESIZE))
 
-            # display the player
-            if ( tilePlayerMap[board.currBoard[row][col]] in [PLAYER_1, PLAYER_2] ):
-                player = game.getPlayer(tilePlayerMap[board.currBoard[row][col]])
+            # Draw the Player
+            try:
+                player = game.getPlayer(board.players[row][col])
 
                 if ( currentPlayer.selectedPos == (row,col) and game.playerSelected == True ):
-
                     DISPLAYSURF.blit(player.selected, (col * TILESIZE, row * TILESIZE))
                 else:
                     DISPLAYSURF.blit(player.normal, (col * TILESIZE, row * TILESIZE))
+            except:
+                pass
 
             # print cell coords
             if (1):
                 textObj = INVFONT.render('(%d,%d)'%(row,col), True, WHITE, GREEN)
                 DISPLAYSURF.blit(textObj, (col * TILESIZE + 20, row*TILESIZE+20))
-
-
 
     # Score, starting 10 pixels in
     placePosition = 10
