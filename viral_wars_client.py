@@ -60,6 +60,15 @@ class Board():
                 self.tiles[row].append(TILE_STD)
                 self.players[row].append(PLAYER_NONE)
 
+    # rox, col = last move
+    def updateBoard(self, row, col):
+
+        for drow in range(-1,2):
+            for dcol in range(-1,2):
+                if ( (row+drow < self.rows and row+drow >= 0) and (col+dcol < self.cols and col+dcol >= 0)):
+                    if self.players[row+drow][col+dcol] != PLAYER_NONE:
+                        self.players[row + drow][col + dcol] = self.players[row][col]
+
     '''
     def writeBoardToBuf(self, gameBoard):
         for row in range(self.rows):
@@ -90,6 +99,8 @@ class Player():
             self.image = self.normal
 
         self.selectedPos = coords
+
+
 
 
 
@@ -174,6 +185,9 @@ print 'Tiles', board.tiles
 
 #isPlayerSelected = False
 #QUIT = False
+
+
+
 while (True):
 
     # get all the user events
@@ -228,9 +242,13 @@ while (True):
                 if ( dist > math.sqrt(2) ):
                     board.tiles[row][col] = game.currPlayer
                     board.tiles[row_orig][col_orig] = TILE_STD
+                    board.players[row_orig][col_orig] = PLAYER_NONE
                     print 'TILE_EMPTY'
                 elif ( dist == 1.0 ):
                     pass #currBoard[a][b] = TILE_STD
+
+                # update board
+                board.updateBoard(row,col)
 
                 game.playerSelected = False
                 game.nextPlayerTurn()
