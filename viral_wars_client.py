@@ -239,7 +239,7 @@ while (END == False):
                     print "sel:",(row,col)
 
             # if TILE_EMPTY, move piece - a piece will only be selected if the above if first triggered
-            elif (game.playerSelected == True and board.tiles[row][col] == TILE_STD):
+            elif (game.playerSelected == True and board.tiles[row][col] == TILE_STD and board.players[row][col] == PLAYER_NONE):
                 print "MOVE TO", row,col
                 # get the coords of the selected piece
                 row_orig = currentPlayer.selectedPos[0]
