@@ -3,6 +3,7 @@ from pygame.locals import *
 import math
 import zmq
 import viral_pb2
+import numpy
 
 class Game():
     def __init__(self):
@@ -59,6 +60,15 @@ class Board():
                 #self.currBoard[row].append(TILE_STD)
                 self.tiles[row].append(TILE_STD)
                 self.players[row].append(PLAYER_NONE)
+
+    def getScore(self):
+        score = {}
+        values = sum(self.players, [])
+        score[PLAYER_NONE] = values.count(PLAYER_NONE)
+        score[PLAYER_1] = values.count(PLAYER_1)
+        score[PLAYER_2] = values.count(PLAYER_2)
+        return score
+
 
     # rox, col = last move
     def updateBoard(self, row, col):
@@ -162,7 +172,7 @@ pygame.init()
 
 # Main display
 DISPLAYSURF = pygame.display.set_mode( (board.rows*TILESIZE, board.cols*TILESIZE +100)  )
-DISPLAYSURF.fill(GREEN)
+#DISPLAYSURF.fill(GREEN)
 
 ###  !! can't do anything with Player class until the main display is set !!
 
@@ -173,7 +183,7 @@ game.addPlayer(PLAYER_2)
 game.setCurrPlayer(PLAYER_1)
 
 # add a font for our inventory
-INVFONT = pygame.font.Font('/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 18)
+INVFONT = pygame.font.Font('/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 22)
 
 pygame.display.set_caption('ATTAX')
 #pygame.display.set_icon(TILE_PLAYER1.image)
@@ -184,24 +194,25 @@ print 'Players', board.players
 print 'Tiles', board.tiles
 
 #isPlayerSelected = False
-#QUIT = False
+END = False
 
 
 
-while (True):
+while (END == False):
 
     # get all the user events
     for event in pygame.event.get():
         #print(event)
 
         # if the user wants to quit
-        if event.type == QUIT:
+        if event.type == pygame.QUIT:
+
             # and the game and close the window
             pygame.quit()
             sys.exit()
 
         # if mouse
-        elif event.type == MOUSEBUTTONUP:
+        elif event.type == pygame.MOUSEBUTTONUP:
 
             currentPlayer = game.getCurrPlayer()
 
@@ -249,8 +260,14 @@ while (True):
 
                 # update board
                 board.updateBoard(row,col)
+                print board.getScore()
 
                 game.playerSelected = False
+
+                score = board.getScore()
+                if score[PLAYER_NONE] == 0 or score[PLAYER_1] == 0 or score[PLAYER_2] == 0:
+                    pass #END = True
+
                 game.nextPlayerTurn()
 
             print "CB Req:  ", board.players
@@ -319,19 +336,38 @@ while (True):
                 DISPLAYSURF.blit(textObj, (col * TILESIZE + 20, row*TILESIZE+20))
 
     # Score, starting 10 pixels in
-    placePosition = 10
+
+    score = board.getScore()
 
     # add the image
-    player = game.getCurrPlayer()
-    DISPLAYSURF.blit(player.normal, (placePosition, board.rows * TILESIZE + 20))
-    #placePosition += 30
-    # add the text showing the amount in the inventory
-    #textObj = INVFONT.render(, True, WHITE, GREEN)
-    #DISPLAYSURF.blit(textObj, (placePosition, MAPHEIGHT * TILESIZE + 20))
-    #placePosition += 50
+
+
+    player = game.getPlayer(PLAYER_1)
+    image = player.normal
+    if game.currPlayer == PLAYER_1:
+        image = player.selected
+
+    placePosition = 0
+    DISPLAYSURF.blit(image, (placePosition, board.rows * TILESIZE))
+    placePosition += TILESIZE/2
+    textObj = INVFONT.render(str(score[PLAYER_1]), True, WHITE, BLACK)
+    DISPLAYSURF.blit(textObj, (placePosition, board.rows * TILESIZE + TILESIZE/2))
+
+
+
+
+    player = game.getPlayer(PLAYER_2)
+    image = player.normal
+    if game.currPlayer == PLAYER_2:
+        image = player.selected
+
+    placePosition = (board.cols - 1) * TILESIZE
+    DISPLAYSURF.blit(image, (placePosition, board.rows * TILESIZE))
+    placePosition += TILESIZE/2
+    textObj = INVFONT.render(str(score[PLAYER_2]), True, WHITE, BLACK)
+    DISPLAYSURF.blit(textObj, (placePosition, board.rows * TILESIZE + TILESIZE/2))
 
 
     #update the display
     pygame.display.update()
 
-    #QUIT = True
